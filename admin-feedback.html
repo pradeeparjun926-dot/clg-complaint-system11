@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Feedback | K.S.R. Complaint System</title>
+<link rel="icon" href="assets/logo.jpeg">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="topbar" id="topbar"></header>
+<div class="app">
+<aside class="sidebar" id="sidebar"></aside>
+<main class="main">
+<div class="page-title"><span class="big">⭐</span><div><h1>Student Feedback</h1><p>What students say about complaint handling</p></div></div>
+<div class="panel"><div class="table-wrap" id="tbl"></div></div>
+</main>
+</div>
+<script src="js/app.js"></script>
+<script>
+const user = appShell('feedback', 'admin');
+if (user) {
+  const list = Feedback.all().sort((a, b) => b.createdAt - a.createdAt);
+  $('#tbl').innerHTML = list.length ? `<table><thead><tr><th>Student</th><th>Complaint</th><th>Rating</th><th>Feedback</th><th>Date</th></tr></thead><tbody>` +
+    list.map(f => `<tr><td>${esc(f.name)}</td><td>${esc(f.complaintId || 'General')}</td><td style="color:#f4b400;white-space:nowrap">${'★'.repeat(f.rating)}${'☆'.repeat(5 - f.rating)}</td><td>${esc(f.message)}</td><td>${fmt(f.createdAt)}</td></tr>`).join('') + `</tbody></table>`
+    : `<p class="empty">No feedback received yet.</p>`;
+}
+</script>
+</body></html>

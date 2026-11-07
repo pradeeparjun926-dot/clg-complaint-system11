@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard | K.S.R. Complaint System</title>
+<link rel="icon" href="assets/logo.jpeg">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="topbar" id="topbar"></header>
+<div class="app">
+<aside class="sidebar" id="sidebar"></aside>
+<main class="main">
+<div class="page-title"><span class="big">🏠</span><div><h1>Welcome, <span id="who"></span></h1><p>Here is a summary of your complaints</p></div></div>
+<div class="stats" id="stats"></div>
+<div class="panel">
+  <h2>Quick actions</h2>
+  <div style="display:flex;gap:12px;flex-wrap:wrap">
+    <a class="btn btn-primary" href="submit-complaint.html">✈ Submit Complaint</a>
+    <a class="btn btn-ghost" href="track-complaint.html">🔍 Track Complaint</a>
+    <a class="btn btn-ghost" href="feedback.html">⭐ Give Feedback</a>
+  </div>
+</div>
+<div class="panel">
+  <h2>Recent complaints</h2>
+  <div class="table-wrap" id="recent"></div>
+</div>
+</main>
+</div>
+<script src="js/app.js"></script>
+<script>
+const user = appShell('dashboard', 'student');
+if (user) {
+  $('#who').textContent = user.name;
+  const list = Complaints.mine(user.email);
+  const n = s => list.filter(c => c.status === s).length;
+  $('#stats').innerHTML = `
+    <div class="stat"><b>${list.length}</b><span>Total complaints</span></div>
+    <div class="stat info"><b>${n('Submitted')}</b><span>Submitted</span></div>
+    <div class="stat warn"><b>${n('Under Review')}</b><span>Under review</span></div>
+    <div class="stat ok"><b>${n('Resolved')}</b><span>Resolved</span></div>`;
+  $('#recent').innerHTML = list.length ? `<table><thead><tr><th>ID</th><th>Category</th><th>Date</th><th>Status</th></tr></thead><tbody>` +
+    list.slice(0, 5).map(c => `<tr><td><a href="track-complaint.html?id=${c.id}">${c.id}</a></td><td>${esc(c.category)}</td><td>${fmt(c.createdAt)}</td><td>${badge(c.status)}</td></tr>`).join('') + `</tbody></table>`
+    : `<p class="empty">You have not submitted any complaints yet. <a href="submit-complaint.html">Submit your first complaint</a>.</p>`;
+}
+</script>
+</body></html>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Login | K.S.R. Complaint System</title>
+<link rel="icon" href="assets/logo.jpeg">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body class="auth-body">
+<header class="topbar" id="topbar"></header>
+<main class="auth-wrap">
+  <form class="auth-card" id="loginForm" novalidate>
+    <h1>Login</h1>
+    <p class="sub">Access your account</p>
+    <div class="tabs" role="tablist">
+      <button type="button" class="on" data-role="student" role="tab">Student</button>
+      <button type="button" data-role="admin" role="tab">Admin</button>
+    </div>
+    <div class="field"><div class="input-wrap"><span class="ico">👤</span>
+      <input id="id" type="text" placeholder="Email / Register Number" autocomplete="username" aria-label="Email or register number"></div></div>
+    <div class="field"><div class="input-wrap"><span class="ico">🔒</span>
+      <input id="pw" type="password" placeholder="Password" autocomplete="current-password" aria-label="Password">
+      <button type="button" class="eye" aria-label="Show or hide password">👁</button></div></div>
+    <p class="error-text" id="err" role="alert"></p>
+    <button class="btn btn-primary btn-block" type="submit">Login</button>
+    <div class="auth-links"><a href="#" id="forgot">Forgot Password?</a><span>New User? <a href="register.html">Register</a></span></div>
+    <p class="hint center-note" id="adminHint" hidden>Demo admin: admin@ksrce.ac.in / admin123</p>
+  </form>
+</main>
+<script src="js/app.js"></script>
+<script>
+publicHeader(''); guestOnly(); bindEyeToggles();
+let role = 'student';
+$$('.tabs button').forEach(b => b.addEventListener('click', () => {
+  $$('.tabs button').forEach(x => x.classList.remove('on')); b.classList.add('on'); role = b.dataset.role;
+  $('#adminHint').hidden = role !== 'admin';
+}));
+$('#loginForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const id = $('#id').value.trim(), pw = $('#pw').value;
+  if (!id || !pw) { $('#err').textContent = 'Enter your email or register number and password.'; return; }
+  if (Auth.login(id, pw, role)) location.href = role === 'admin' ? 'admin.html' : 'dashboard.html';
+  else $('#err').textContent = 'Email, register number or password is incorrect for the ' + role + ' login.';
+});
+$('#forgot').addEventListener('click', e => {
+  e.preventDefault();
+  const m = modal(`<h3>Reset password</h3>
+    <div class="field"><label>Email / Register Number</label><input id="rid"></div>
+    <div class="field"><label>New password</label><input id="rpw" type="password" placeholder="At least 6 characters"></div>
+    <p class="error-text" id="rerr"></p>
+    <div class="modal-actions"><button class="btn btn-ghost" id="rc">Cancel</button><button class="btn btn-primary" id="rs">Reset password</button></div>`);
+  $('#rc', m).onclick = () => m.remove();
+  $('#rs', m).onclick = () => {
+    const id = $('#rid', m).value.trim(), p = $('#rpw', m).value;
+    if (!id || p.length < 6) { $('#rerr', m).textContent = 'Enter your ID and a password of at least 6 characters.'; return; }
+    if (Auth.resetPassword(id, p)) { m.remove(); toast('Password reset. You can log in now.'); }
+    else $('#rerr', m).textContent = 'No student account found with that email or register number.';
+  };
+});
+</script>
+</body>
+</html>

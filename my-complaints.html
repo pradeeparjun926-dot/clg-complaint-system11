@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My Complaints | K.S.R. Complaint System</title>
+<link rel="icon" href="assets/logo.jpeg">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="topbar" id="topbar"></header>
+<div class="app">
+<aside class="sidebar" id="sidebar"></aside>
+<main class="main">
+<div class="page-title"><span class="big">📋</span><div><h1>My Complaints</h1><p>All the complaints you have submitted</p></div></div>
+<div class="panel">
+  <div class="filters"><select id="fs" aria-label="Filter by status"><option value="">All statuses</option></select></div>
+  <div class="table-wrap" id="tbl"></div>
+</div>
+</main>
+</div>
+<script src="js/app.js"></script>
+<script>
+const user = appShell('mine', 'student');
+if (user) {
+  STATUS.forEach(s => $('#fs').insertAdjacentHTML('beforeend', `<option>${s}</option>`));
+  const draw = () => {
+    const f = $('#fs').value, list = Complaints.mine(user.email).filter(c => !f || c.status === f);
+    $('#tbl').innerHTML = list.length ? `<table><thead><tr><th>ID</th><th>Category</th><th>Department</th><th>Description</th><th>Date</th><th>Status</th><th></th></tr></thead><tbody>` +
+      list.map(c => `<tr><td>${c.id}</td><td>${esc(c.category)}</td><td>${esc(c.department)}</td><td style="max-width:260px">${esc(c.description.length > 80 ? c.description.slice(0, 80) + '…' : c.description)}</td><td>${fmt(c.createdAt)}</td><td>${badge(c.status)}</td>
+      <td><a class="btn btn-ghost btn-sm" href="track-complaint.html?id=${c.id}">Track</a></td></tr>`).join('') + `</tbody></table>`
+      : `<p class="empty">No complaints to show. <a href="submit-complaint.html">Submit a complaint</a>.</p>`;
+  };
+  $('#fs').addEventListener('change', draw); draw();
+}
+</script>
+</body></html>

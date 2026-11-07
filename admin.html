@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin Dashboard | K.S.R. Complaint System</title>
+<link rel="icon" href="assets/logo.jpeg">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="topbar" id="topbar"></header>
+<div class="app">
+<aside class="sidebar" id="sidebar"></aside>
+<main class="main">
+<div class="page-title"><span class="big">🛠</span><div><h1>Admin Dashboard</h1><p>Review and resolve student complaints</p></div></div>
+<div class="stats" id="stats"></div>
+<div class="panel">
+  <div class="filters">
+    <input id="q" type="search" placeholder="Search ID, student or text" aria-label="Search complaints">
+    <select id="fs" aria-label="Filter by status"><option value="">All statuses</option></select>
+    <select id="fd" aria-label="Filter by department"><option value="">All departments</option></select>
+  </div>
+  <div class="table-wrap" id="tbl"></div>
+</div>
+</main>
+</div>
+<script src="js/app.js"></script>
+<script>
+const user = appShell('complaints', 'admin');
+if (user) {
+  STATUS.forEach(s => $('#fs').insertAdjacentHTML('beforeend', `<option>${s}</option>`));
+  DEPARTMENTS.forEach(d => $('#fd').insertAdjacentHTML('beforeend', `<option>${d}</option>`));
+  function draw() {
+    const all = Complaints.all(), n = s => all.filter(c => c.status === s).length;
+    $('#stats').innerHTML = `<div class="stat"><b>${all.length}</b><span>Total complaints</span></div>
+      <div class="stat info"><b>${n('Submitted')}</b><span>New</span></div>
+      <div class="stat warn"><b>${n('Under Review')}</b><span>Under review</span></div>
+      <div class="stat ok"><b>${n('Resolved')}</b><span>Resolved</span></div>`;
+    const q = $('#q').value.toLowerCase(), fs = $('#fs').value, fd = $('#fd').value;
+    const list = all.filter(c => (!fs || c.status === fs) && (!fd || c.department === fd) &&
+      (!q || (c.id + c.name + c.regNo + c.description + c.category).toLowerCase().includes(q))).sort((a, b) => b.createdAt - a.createdAt);
+    $('#tbl').innerHTML = list.length ? `<table><thead><tr><th>ID</th><th>Student</th><th>Category / Dept</th><th>Description</th><th>Date</th><th>Status</th><th></th></tr></thead><tbody>` +
+      list.map(c => `<tr><td>${c.id}</td><td>${esc(c.name)}<br><span class="hint">${esc(c.regNo)}</span></td><td>${esc(c.category)}<br><span class="hint">${esc(c.department)}</span></td>
+      <td style="max-width:260px">${esc(c.description.length > 90 ? c.description.slice(0, 90) + '…' : c.description)}</td><td>${fmt(c.createdAt)}</td><td>${badge(c.status)}</td>
+      <td><button class="btn btn-primary btn-sm" data-id="${c.id}">Manage</button></td></tr>`).join('') + `</tbody></table>`
+      : `<p class="empty">No complaints match your filters.</p>`;
+    $$('#tbl [data-id]').forEach(b => b.addEventListener('click', () => manage(b.dataset.id)));
+  }
+  function manage(id) {
+    const c = Complaints.find(id);
+    const ev = c.evidenceName ? (c.evidenceData ? `<a href="${c.evidenceData}" download="${esc(c.evidenceName)}">📎 ${esc(c.evidenceName)}</a>` : esc(c.evidenceName)) : 'None';
+    const m = modal(`<h3>${c.id} · ${esc(c.category)}</h3>
+      <p class="hint">${esc(c.name)} (${esc(c.regNo)}) · ${esc(c.department)} · ${fmt(c.createdAt)}</p>
+      <p style="margin:10px 0">${esc(c.description)}</p><p style="margin-bottom:12px"><b>Evidence:</b> ${ev}</p>
+      <div class="field"><label>Status</label><select id="ms">${STATUS.map(s => `<option ${s === c.status ? 'selected' : ''}>${s}</option>`).join('')}</select></div>
+      <div class="field"><label>Remark for the student</label><textarea id="mr" style="min-height:80px">${esc(c.remark)}</textarea></div>
+      <div class="modal-actions"><button class="btn btn-danger btn-sm" id="md">Delete</button><button class="btn btn-ghost" id="mc">Close</button><button class="btn btn-primary" id="mu">Update status</button></div>`);
+    $('#mc', m).onclick = () => m.remove();
+    $('#mu', m).onclick = () => { Complaints.setStatus(id, $('#ms', m).value, $('#mr', m).value.trim()); m.remove(); draw(); toast('Status updated.'); };
+    $('#md', m).onclick = () => { if (confirm('Delete complaint ' + id + '? This cannot be undone.')) { Complaints.remove(id); m.remove(); draw(); toast('Complaint deleted.'); } };
+  }
+  ['input', 'change'].forEach(ev => ['#q', '#fs', '#fd'].forEach(s => $(s).addEventListener(ev, draw)));
+  draw();
+}
+</script>
+</body></html>

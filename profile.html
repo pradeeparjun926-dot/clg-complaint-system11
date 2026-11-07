@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Profile | K.S.R. Complaint System</title>
+<link rel="icon" href="assets/logo.jpeg">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="topbar" id="topbar"></header>
+<div class="app">
+<aside class="sidebar" id="sidebar"></aside>
+<main class="main">
+<div class="page-title"><span class="big">👤</span><div><h1>My Profile</h1><p>View and update your details</p></div></div>
+<form class="panel" id="pf" novalidate style="max-width:560px">
+  <div class="field"><label for="name">Name</label><input id="name"></div>
+  <div class="field"><label for="email">Email Address</label><input id="email" disabled></div>
+  <div class="field"><label for="reg">Register Number</label><input id="reg" disabled></div>
+  <div class="field"><label for="npw">New password <span class="hint">(leave blank to keep the current one)</span></label><input id="npw" type="password" autocomplete="new-password"></div>
+  <p class="error-text" id="err" role="alert"></p>
+  <button class="btn btn-primary" type="submit">Save changes</button>
+</form>
+</main>
+</div>
+<script src="js/app.js"></script>
+<script>
+const user = appShell('profile', 'student');
+if (user) {
+  $('#name').value = user.name; $('#email').value = user.email; $('#reg').value = user.regNo;
+  $('#pf').addEventListener('submit', e => {
+    e.preventDefault();
+    const name = $('#name').value.trim(), pw = $('#npw').value;
+    if (!name) return $('#err').textContent = 'Name cannot be empty.';
+    if (pw && pw.length < 6) return $('#err').textContent = 'New password must be at least 6 characters.';
+    Auth.updateProfile(user.email, pw ? { name, password: pw } : { name });
+    $('#err').textContent = ''; $('#npw').value = ''; toast('Changes saved.'); setTimeout(() => location.reload(), 900);
+  });
+}
+</script>
+</body></html>

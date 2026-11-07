@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Submit Complaint | K.S.R. Complaint System</title>
+<link rel="icon" href="assets/logo.jpeg">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="topbar" id="topbar"></header>
+<div class="app">
+<aside class="sidebar" id="sidebar"></aside>
+<main class="main">
+<div class="page-title"><span class="big">✈️</span><div><h1>Submit a Complaint</h1><p>Let us know your issue</p></div></div>
+<form class="panel" id="cf" novalidate>
+  <div class="row2">
+    <div class="field"><label for="cat">Select Category</label><select id="cat"></select></div>
+    <div class="field"><label for="dep">Select Department</label><select id="dep"></select></div>
+  </div>
+  <div class="field"><label for="desc">Describe Your Complaint</label><textarea id="desc" placeholder="Enter complaint details…"></textarea></div>
+  <label class="upload" for="file">⬆ <span id="fileLabel">Upload Evidence<small>(Picture / Document, max 1 MB)</small></span>
+    <input type="file" id="file" accept="image/*,.pdf,.doc,.docx"></label>
+  <p class="error-text" id="err" role="alert"></p>
+  <button class="btn btn-primary btn-block" type="submit">Submit Complaint</button>
+</form>
+</main>
+</div>
+<script src="js/app.js"></script>
+<script>
+const user = appShell('submit', 'student');
+if (user) {
+  fillSelect($('#cat'), CATEGORIES, 'Choose a category');
+  fillSelect($('#dep'), DEPARTMENTS, 'Choose a department');
+  let ev = { name: '', data: '' };
+  $('#file').addEventListener('change', e => {
+    const f = e.target.files[0]; ev = { name: '', data: '' };
+    if (!f) { $('#fileLabel').innerHTML = 'Upload Evidence<small>(Picture / Document, max 1 MB)</small>'; return; }
+    if (f.size > 1024 * 1024) { $('#err').textContent = 'File is larger than 1 MB. Choose a smaller file.'; e.target.value = ''; return; }
+    $('#err').textContent = ''; ev.name = f.name; $('#fileLabel').textContent = '📎 ' + f.name;
+    const r = new FileReader(); r.onload = () => ev.data = r.result; r.readAsDataURL(f);
+  });
+  $('#cf').addEventListener('submit', e => {
+    e.preventDefault();
+    const category = $('#cat').value, department = $('#dep').value, description = $('#desc').value.trim();
+    if (!category || !department) return $('#err').textContent = 'Choose a category and a department.';
+    if (description.length < 10) return $('#err').textContent = 'Describe the issue in at least 10 characters.';
+    try {
+      const c = Complaints.create(user, { category, department, description, evidenceName: ev.name, evidenceData: ev.data });
+      const m = modal(`<h3>Complaint submitted</h3><p>Your complaint ID is <b style="color:var(--blue);font-size:1.2rem">${c.id}</b>.<br>Use it to track the status.</p>
+        <div class="modal-actions"><a class="btn btn-ghost" href="dashboard.html">Go to dashboard</a><a class="btn btn-primary" href="track-complaint.html?id=${c.id}">Track complaint</a></div>`);
+      $('#cf').reset(); $('#fileLabel').innerHTML = 'Upload Evidence<small>(Picture / Document, max 1 MB)</small>'; ev = { name: '', data: '' };
+    } catch (x) { $('#err').textContent = 'Could not save. Remove the attachment or free some browser storage.'; }
+  });
+}
+</script>
+</body></html>

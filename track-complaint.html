@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Track Complaint | K.S.R. Complaint System</title>
+<link rel="icon" href="assets/logo.jpeg">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="topbar" id="topbar"></header>
+<div class="app">
+<aside class="sidebar" id="sidebar"></aside>
+<main class="main">
+<div class="page-title"><span class="big">🔍</span><div><h1>Track Your Complaint</h1><p>Check the status of your complaint</p></div></div>
+<div class="panel">
+  <label for="cid" style="font-weight:600;color:var(--navy);display:block;margin-bottom:6px">Enter Complaint ID</label>
+  <form class="track-row" id="tf"><input id="cid" placeholder="e.g. CM2026001"><button class="btn btn-primary" type="submit">Track</button></form>
+  <div id="result"></div>
+</div>
+</main>
+</div>
+<script src="js/app.js"></script>
+<script>
+const user = appShell('track', 'student');
+function show(id) {
+  const c = Complaints.find(id), box = $('#result');
+  if (!c || c.email !== user.email) { box.innerHTML = `<div class="alert err">No complaint found with ID “${esc(id)}” on your account. Check the ID and try again.</div>`; return; }
+  const idx = STATUS.indexOf(c.status);
+  const dates = [c.dates.submitted, c.dates.review, c.dates.resolved];
+  const msg = { 0: ['info', 'Your complaint has been received and is waiting for review.'], 1: ['warn', 'Your complaint is under review by the department.'], 2: ['ok', '✔ Your complaint has been resolved!'] }[idx];
+  box.innerHTML = `<h2 style="color:var(--navy);font-size:1.1rem">Complaint Status</h2>
+    <div class="steps">${STATUS.map((s, i) => `<div class="step ${i <= idx ? 'done' : ''}"><i>${i <= idx ? '✓' : ''}</i>${s}<small>${i <= idx ? '(' + fmt(dates[i]) + ')' : 'Pending'}</small></div>`).join('')}</div>
+    <div class="alert ${msg[0]}">${msg[1]}</div>
+    <div class="detail-grid">
+      <div><b>Complaint ID:</b> ${c.id}</div><div><b>Category:</b> ${esc(c.category)}</div>
+      <div><b>Department:</b> ${esc(c.department)}</div><div><b>Submitted on:</b> ${fmt(c.createdAt)}</div>
+      <div style="grid-column:1/-1"><b>Description:</b> ${esc(c.description)}</div>
+      ${c.evidenceName ? `<div style="grid-column:1/-1"><b>Evidence:</b> ${esc(c.evidenceName)}</div>` : ''}
+      ${c.remark ? `<div style="grid-column:1/-1"><b>Admin remark:</b> ${esc(c.remark)}</div>` : ''}
+    </div>`;
+}
+if (user) {
+  $('#tf').addEventListener('submit', e => { e.preventDefault(); const v = $('#cid').value.trim(); if (v) show(v); });
+  const q = new URLSearchParams(location.search).get('id'); if (q) { $('#cid').value = q; show(q); }
+}
+</script>
+</body></html>

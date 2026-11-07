@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Feedback | K.S.R. Complaint System</title>
+<link rel="icon" href="assets/logo.jpeg">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="topbar" id="topbar"></header>
+<div class="app">
+<aside class="sidebar" id="sidebar"></aside>
+<main class="main">
+<div class="page-title"><span class="big">⭐</span><div><h1>Feedback</h1><p>Tell us how we handled your complaint</p></div></div>
+<form class="panel" id="ff" novalidate style="max-width:620px">
+  <div class="field"><label for="cid">Complaint (optional)</label><select id="cid"></select></div>
+  <label style="font-weight:600;color:var(--navy);font-size:.88rem">Your rating</label>
+  <div class="stars" id="stars" role="radiogroup" aria-label="Rating"></div>
+  <div class="field"><label for="msg">Your feedback</label><textarea id="msg" placeholder="Share your experience…"></textarea></div>
+  <p class="error-text" id="err" role="alert"></p>
+  <button class="btn btn-primary" type="submit">Send feedback</button>
+</form>
+</main>
+</div>
+<script src="js/app.js"></script>
+<script>
+const user = appShell('feedback', 'student');
+if (user) {
+  const mine = Complaints.mine(user.email);
+  $('#cid').innerHTML = '<option value="">General feedback</option>' + mine.map(c => `<option value="${c.id}">${c.id} – ${esc(c.category)}</option>`).join('');
+  let rating = 0;
+  const paint = () => $('#stars').innerHTML = [1, 2, 3, 4, 5].map(i => `<span class="${i <= rating ? 'on' : ''}" data-v="${i}" role="radio" aria-checked="${i === rating}" tabindex="0" aria-label="${i} star">★</span>`).join('');
+  paint();
+  $('#stars').addEventListener('click', e => { const v = e.target.dataset.v; if (v) { rating = +v; paint(); } });
+  $('#stars').addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.dataset.v) { e.preventDefault(); rating = +e.target.dataset.v; paint(); } });
+  $('#ff').addEventListener('submit', e => {
+    e.preventDefault();
+    const message = $('#msg').value.trim();
+    if (!rating) return $('#err').textContent = 'Select a star rating.';
+    if (message.length < 5) return $('#err').textContent = 'Write a few words of feedback.';
+    Feedback.add({ name: user.name, email: user.email, complaintId: $('#cid').value, rating, message });
+    $('#err').textContent = ''; $('#ff').reset(); rating = 0; paint(); toast('Thanks! Your feedback has been sent.');
+  });
+}
+</script>
+</body></html>
